@@ -29,13 +29,14 @@ fun ReservationNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
     NavHost(
         navController = navController,
         startDestination = HomeDestination.route,
         modifier = modifier
     ) {
         composable(route = HomeDestination.route) {
-            val uiState by viewModel.uiState.collectAsState()
             HomeScreen(
                 origin = uiState.origin,
                 destination = uiState.destination,
@@ -43,23 +44,31 @@ fun ReservationNavHost(
                 setDeparture = { viewModel.setDeparture(it) },
                 navigateToPickOrgCity = { navController.navigate(PickOrgCityDestination.route) },
                 navigateToPickDesCity = { navController.navigate(PickDesCityDestination.route) },
-                navigateToPickTicket = { navController.navigate(PickTicketDestination.route) }
+                navigateToPickTicket = {
+                    viewModel.createRandomTicketList()
+                    navController.navigate(PickTicketDestination.route)
+                }
             )
         }
         composable(route = PickOrgCityDestination.route) {
             PickCityScreen(
+                selectedCity = uiState.origin,
+                otherCity = uiState.destination,
                 setCity = { viewModel.setOrigin(it) },
                 navigateUp = { navController.popBackStack() }
             )
         }
         composable(route = PickDesCityDestination.route) {
             PickCityScreen(
+                selectedCity = uiState.destination,
+                otherCity = uiState.origin,
                 setCity = { viewModel.setDestination(it) },
                 navigateUp = { navController.popBackStack() }
             )
         }
         composable(route = PickTicketDestination.route) {
             PickTicketScreen(
+                ticketsList = uiState.ticketsList,
                 navigateToTicket = { navController.navigate("${TicketDestination.route}/$it") },
                 navigateUp = { navController.navigateUp() }
             )

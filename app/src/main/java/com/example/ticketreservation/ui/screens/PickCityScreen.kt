@@ -40,11 +40,14 @@ object PickDesCityDestination : NavigationDestination {
 
 @Composable
 fun PickCityScreen(
+    selectedCity: String,
+    otherCity: String,
     setCity: (String) -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var enabled by remember { mutableStateOf(false) }
+    var newSelection by remember { mutableStateOf(selectedCity) }
 
     Scaffold(
         topBar = { ReservationTopAppBar(canNavigateBack = true, navigateUp = navigateUp) },
@@ -52,9 +55,13 @@ fun PickCityScreen(
     ) { paddingValue ->
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             PickCity(
-                onCitySelected = { enabled = true },
+                selectedCity = selectedCity,
+                onCitySelected = {
+                    newSelection = it
+                    enabled = (newSelection != "") && (newSelection != otherCity)
+                },
                 onConfirmClick = {
-                    setCity(it)
+                    setCity(newSelection)
                     navigateUp()
                 },
                 enabled = enabled,
@@ -67,12 +74,13 @@ fun PickCityScreen(
 
 @Composable
 fun PickCity(
+    selectedCity: String,
     modifier: Modifier = Modifier,
-    onCitySelected: () -> Unit = {},
-    onConfirmClick: (String) -> Unit = {},
+    onCitySelected: (String) -> Unit = {},
+    onConfirmClick: () -> Unit = {},
     enabled: Boolean = false
 ) {
-    var selectedCity by remember { mutableStateOf("") }
+    var newSelection by remember { mutableStateOf(selectedCity) }
 
     Column(modifier = modifier) {
         LazyColumn(modifier = Modifier.weight(1f)) {
@@ -82,12 +90,12 @@ fun PickCity(
             ) {
                 ListItem(
                     headlineContent = { Text(text = it.second) },
-                    trailingContent = { if (selectedCity == it.second)
+                    trailingContent = { if (newSelection == it.second)
                         Icon(imageVector = Icons.Default.Done, contentDescription = "")
                     },
                     modifier = Modifier.clickable {
-                        selectedCity = it.second
-                        onCitySelected()
+                        newSelection = it.second
+                        onCitySelected(it.second)
                     }
                 )
             }
@@ -96,7 +104,7 @@ fun PickCity(
             value = "", onValueChange = {}, modifier = Modifier.fillMaxWidth()
         )
         Button(
-            onClick = { onConfirmClick(selectedCity) },
+            onClick = onConfirmClick,
             enabled = enabled,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -110,6 +118,8 @@ fun PickCity(
 fun PickCityScreenPreview() {
     TicketReservationTheme {
         PickCityScreen(
+            selectedCity = "",
+            otherCity = "",
             setCity = {},
             navigateUp = {},
             modifier = Modifier.fillMaxSize()

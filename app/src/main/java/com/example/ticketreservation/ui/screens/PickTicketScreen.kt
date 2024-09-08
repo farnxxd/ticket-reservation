@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.example.ticketreservation.R
 import com.example.ticketreservation.ReservationTopAppBar
+import com.example.ticketreservation.data.ticket.Ticket
 import com.example.ticketreservation.ui.navigation.NavigationDestination
 import com.example.ticketreservation.ui.theme.TicketReservationTheme
 
@@ -32,21 +34,23 @@ object PickTicketDestination : NavigationDestination {
 
 @Composable
 fun PickTicketScreen(
+    ticketsList: List<Ticket>,
     navigateToTicket: (Int) -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         topBar = { ReservationTopAppBar(canNavigateBack = true, navigateUp = navigateUp) }
-    ) {
+    ) { paddingValue ->
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            LazyColumn(modifier = modifier.padding(it)) {
-                items(10) {
+            LazyColumn(modifier = modifier.padding(paddingValue)) {
+                items(items = ticketsList, key = { it.id } ) {
                     Ticket(
-                        onTicketClick = { navigateToTicket(it) },
+                        ticket = it,
+                        onTicketClick = { navigateToTicket(it.id) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { navigateToTicket(it) }
+                            .clickable { navigateToTicket(it.id) }
                     )
                 }
             }
@@ -57,6 +61,7 @@ fun PickTicketScreen(
 
 @Composable
 fun Ticket(
+    ticket: Ticket,
     modifier: Modifier = Modifier,
     onTicketClick: () -> Unit = {}
 ) {
@@ -64,15 +69,15 @@ fun Ticket(
         ListItem(
             overlineContent = {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(text = "رشت")
+                    Text(text = ticket.origin)
                     Text(text = "به")
-                    Text(text = "قزوین")
+                    Text(text = ticket.destination)
                 }
             },
             headlineContent = {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = "زمان حرکت:")
-                    Text(text = "12:00")
+                    Text(text = ticket.departureTime)
                 }
             },
             trailingContent = {
@@ -92,6 +97,7 @@ fun Ticket(
 fun PickTicketScreenPreview() {
     TicketReservationTheme {
         PickTicketScreen(
+            ticketsList = emptyList(),
             navigateToTicket = {},
             navigateUp = {},
             modifier = Modifier.fillMaxSize()
@@ -104,7 +110,10 @@ fun PickTicketScreenPreview() {
 fun TicketPreview() {
     TicketReservationTheme {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
-            Ticket(modifier = Modifier.fillMaxWidth())
+            Ticket(
+                ticket = Ticket(),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
