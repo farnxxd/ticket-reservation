@@ -15,5 +15,4 @@ class ReservationViewModel: ViewModel() {
     fun setDestination(city: String) { _uiState.update { it.copy(destination = city) } }
 
     fun setDeparture(date: String) { _uiState.update { it.copy(departure = date) } }
-
 }

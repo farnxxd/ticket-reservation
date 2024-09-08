@@ -1,6 +1,10 @@
 package com.example.ticketreservation.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -10,14 +14,18 @@ import androidx.navigation.navArgument
 import com.example.ticketreservation.ui.screens.HomeDestination
 import com.example.ticketreservation.ui.screens.HomeScreen
 import com.example.ticketreservation.ui.screens.PickCityScreen
-import com.example.ticketreservation.ui.screens.PickCityDestination
+import com.example.ticketreservation.ui.screens.PickDesCityDestination
+import com.example.ticketreservation.ui.screens.PickOrgCityDestination
 import com.example.ticketreservation.ui.screens.PickTicketDestination
 import com.example.ticketreservation.ui.screens.PickTicketScreen
 import com.example.ticketreservation.ui.screens.TicketDestination
 import com.example.ticketreservation.ui.screens.TicketScreen
+import com.example.ticketreservation.ui.viewmodel.ReservationViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ReservationNavHost(
+    viewModel: ReservationViewModel,
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
@@ -27,14 +35,27 @@ fun ReservationNavHost(
         modifier = modifier
     ) {
         composable(route = HomeDestination.route) {
+            val uiState by viewModel.uiState.collectAsState()
             HomeScreen(
-                navigateToPickCity = { navController.navigate(PickCityDestination.route) },
+                origin = uiState.origin,
+                destination = uiState.destination,
+                departure = uiState.departure,
+                setDeparture = { viewModel.setDeparture(it) },
+                navigateToPickOrgCity = { navController.navigate(PickOrgCityDestination.route) },
+                navigateToPickDesCity = { navController.navigate(PickDesCityDestination.route) },
                 navigateToPickTicket = { navController.navigate(PickTicketDestination.route) }
             )
         }
-        composable(route = PickCityDestination.route) {
+        composable(route = PickOrgCityDestination.route) {
             PickCityScreen(
-                navigateUp = { navController.navigateUp() }
+                setCity = { viewModel.setOrigin(it) },
+                navigateUp = { navController.popBackStack() }
+            )
+        }
+        composable(route = PickDesCityDestination.route) {
+            PickCityScreen(
+                setCity = { viewModel.setDestination(it) },
+                navigateUp = { navController.popBackStack() }
             )
         }
         composable(route = PickTicketDestination.route) {
@@ -50,7 +71,7 @@ fun ReservationNavHost(
             })
         ) {
             TicketScreen(
-                navigateToHome = { navController.popBackStack() },
+                navigateToHome = { navController.popBackStack(route = HomeDestination.route, inclusive = false) },
                 navigateUp = { navController.navigateUp() }
             )
         }

@@ -1,9 +1,9 @@
 package com.example.ticketreservation
 
-import androidx.compose.foundation.layout.Box
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -16,15 +16,20 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.ticketreservation.ui.navigation.ReservationNavHost
-import com.example.ticketreservation.ui.screens.HomeScreen
 import com.example.ticketreservation.ui.theme.TicketReservationTheme
+import com.example.ticketreservation.ui.viewmodel.ReservationViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ReservationApp(navController: NavHostController = rememberNavController()) {
-    ReservationNavHost(navController = navController)
+fun ReservationApp(
+    viewModel: ReservationViewModel = viewModel(),
+    navController: NavHostController = rememberNavController()
+) {
+    ReservationNavHost(viewModel = viewModel, navController = navController)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +55,7 @@ fun ReservationTopAppBar(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun ReservationPreview() {
