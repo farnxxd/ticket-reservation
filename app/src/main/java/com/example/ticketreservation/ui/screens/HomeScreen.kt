@@ -3,17 +3,21 @@ package com.example.ticketreservation.ui.screens
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
@@ -23,21 +27,28 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.example.ticketreservation.ReservationTopAppBar
+import com.example.ticketreservation.data.util.convertLongToTime
 import com.example.ticketreservation.ui.navigation.NavigationDestination
 import com.example.ticketreservation.ui.theme.TicketReservationTheme
 import com.example.ticketreservation.ui.viewmodel.ReservationViewModel
@@ -58,12 +69,12 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    var isDatePickerVisible by remember { mutableStateOf(false) }
+    val isDatePickerVisible = remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = { ReservationTopAppBar(canNavigateBack = false) },
         modifier = modifier
-    ) {
+    ) { paddingValues ->
         DetailsForm(
             origin = uiState.origin,
             destination = uiState.destination,
@@ -71,14 +82,14 @@ fun HomeScreen(
             setOrigin = { viewModel.setOrigin(it) },
             setDestination = { viewModel.setDestination(it) },
             setDeparture = { viewModel.setDeparture(it) },
-            isDatePickerVisible = isDatePickerVisible,
+            isDatePickerVisible = isDatePickerVisible.value,
             onCityPickerClick = navigateToPickCity,
-            onDatePickerClick = { isDatePickerVisible = true },
-            onDatePickerDismiss = { isDatePickerVisible = false },
+            onDatePickerClick = { isDatePickerVisible.value = true },
+            onDatePickerDismiss = { isDatePickerVisible.value = false },
             onSearchClick = navigateToPickTicket,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
         )
     }
 
@@ -101,12 +112,9 @@ fun DetailsForm(
     onDatePickerDismiss: () -> Unit = {},
     onSearchClick: () -> Unit = {}
 ) {
-    val selectedDate by remember { mutableStateOf(LocalDate.now().format(DateTimeFormatter.ofPattern("DD/MM"))) }
-    val datePickerState = rememberDatePickerState()
-    val datePickerFormatter = remember {
-        DatePickerDefaults.dateFormatter(selectedDateSkeleton = "DD/MM")
+    val newDate = remember {
+        mutableStateOf("خالی")
     }
-
     Box(modifier = modifier) {
         Card(modifier = Modifier.align(Alignment.Center)) {
             Column(
@@ -117,30 +125,58 @@ fun DetailsForm(
                     .width(IntrinsicSize.Min)
                     .padding(16.dp)
             ) {
-                OutlinedButton(onClick = onCityPickerClick) {
-                    Text(text = "مبدأ")
-                }
-                Text(text = isDatePickerVisible.toString())
-                OutlinedButton(onClick = onCityPickerClick) {
-                    Text(text = "مقصد")
-                }
+                OutlinedTextField(
+                    value = origin,
+                    onValueChange = {},
+                    readOnly = true,
+                    singleLine = true,
+                    label = { Text(text = "مبدأ") },
+                    modifier = Modifier.onFocusEvent { if (it.hasFocus) onCityPickerClick() }
+                )
+                OutlinedTextField(
+                    value = destination,
+                    onValueChange = {},
+                    readOnly = true,
+                    singleLine = true,
+                    label = {                     Text(text = "مقصد")
+                    },
+                    modifier = Modifier.onFocusEvent { if (it.hasFocus) onCityPickerClick() }
+                )
                 HorizontalDivider(
                     thickness = 2.dp,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-                OutlinedButton(onClick = onDatePickerClick) {
-                    Text(text = "زمان حرکت")
-                }
+                OutlinedTextField(
+                    value = departure,
+                    onValueChange = {},
+                    readOnly = true,
+                    singleLine = true,
+                    label = { Text(text = "زمان حرکت") },
+                    modifier = Modifier.onFocusEvent { if (it.hasFocus) onDatePickerClick() }
+                )
                 if(isDatePickerVisible) {
+                    val datePickerState = rememberDatePickerState()
+                    val confirmEnabled =
+                        remember { derivedStateOf {datePickerState.selectedDateMillis != null } }
+
                     DatePickerDialog(
                         onDismissRequest = onDatePickerDismiss,
-                        confirmButton = { setDeparture(selectedDate) },
-                        dismissButton = { onDatePickerDismiss() }
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    onDatePickerDismiss()
+                                    var date = ""
+                                    if (datePickerState.selectedDateMillis != null)
+                                        date = convertLongToTime(datePickerState.selectedDateMillis!!)
+                                    newDate.value = date
+                                },
+                                enabled = confirmEnabled.value
+                            ) {
+                                Text(text = "تأیید")
+                            }
+                        }
                     ) {
-                        DatePicker(
-                            state = datePickerState,
-                            dateFormatter = datePickerFormatter
-                        )
+                        DatePicker(state = datePickerState)
                     }
                 }
                 Button(
