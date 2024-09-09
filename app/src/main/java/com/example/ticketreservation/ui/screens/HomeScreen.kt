@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
@@ -60,91 +63,126 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     var isDatePickerVisible by remember { mutableStateOf(false) }
+    val enabled by remember {
+        mutableStateOf(origin.isNotBlank() && destination.isNotBlank() && departure.isNotBlank())
+    }
+
+    val focusManager = LocalFocusManager.current
 
     Scaffold(
         topBar = { ReservationTopAppBar(canNavigateBack = false) },
         modifier = modifier
     ) { paddingValues ->
-        Box(modifier = modifier.fillMaxSize().padding(paddingValues)) {
-            Card(modifier = Modifier.align(Alignment.Center)) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .width(IntrinsicSize.Min)
-                        .padding(16.dp)
-                ) {
-                    OutlinedTextField(
-                        value = origin,
-                        onValueChange = {},
-                        readOnly = true,
-                        singleLine = true,
-                        label = { Text(text = "مبدأ") },
+        Box(modifier = modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+        ) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                Card(modifier = Modifier.align(Alignment.Center)) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .onFocusChanged { if (it.hasFocus) navigateToPickOrgCity() }
-                    )
-                    OutlinedTextField(
-                        value = destination,
-                        onValueChange = {},
-                        readOnly = true,
-                        singleLine = true,
-                        label = {
-                            Text(text = "مقصد")
-                        },
-                        modifier = Modifier
-                            .onFocusChanged { if (it.hasFocus) navigateToPickDesCity() }
-                    )
-                    HorizontalDivider(
-                        thickness = 2.dp,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                    OutlinedTextField(
-                        value = departure,
-                        onValueChange = {},
-                        readOnly = true,
-                        singleLine = true,
-                        label = { Text(text = "زمان حرکت") },
-                        modifier = Modifier.onFocusEvent {
-                            if (it.hasFocus) isDatePickerVisible = true
-                        }
-                    )
-                    if (isDatePickerVisible) {
-                        val datePickerState = rememberDatePickerState()
-                        val confirmEnabled =
-                            remember { derivedStateOf { datePickerState.selectedDateMillis != null } }
-
-                        DatePickerDialog(
-                            onDismissRequest = { isDatePickerVisible = false },
-                            confirmButton = {
-                                TextButton(
-                                    onClick = {
-                                        isDatePickerVisible = false
-                                        var date = ""
-                                        if (datePickerState.selectedDateMillis != null)
-                                            date =
-                                                convertLongToTime(datePickerState.selectedDateMillis!!)
-                                        setDeparture(date)
-                                    },
-                                    enabled = confirmEnabled.value
-                                ) {
-                                    Text(text = "تأیید")
-                                }
-                            }
-                        ) {
-                            DatePicker(state = datePickerState)
-                        }
-                    }
-                    Button(
-                        onClick = navigateToPickTicket,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
+                            .wrapContentWidth()
+                            .width(IntrinsicSize.Min)
+                            .padding(16.dp)
                     ) {
-                        Text(text = "جستجو")
+                        HomeTextField(
+                            value = origin,
+                            label = "مبدأ",
+                            onClick = navigateToPickOrgCity
+                        )
+                        HomeTextField(
+                            value = destination,
+                            label = "مقصد",
+                            onClick = navigateToPickDesCity
+                        )
+                        HorizontalDivider(
+                            thickness = 2.dp,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        HomeTextField(
+                            value = departure,
+                            label = "زمان حرکت",
+                            onClick = { isDatePickerVisible = true }
+                        )
+                        if (isDatePickerVisible) {
+                            CustomDatePicker(
+                                setDeparture = setDeparture,
+                                onDismissRequest = { isDatePickerVisible = false },
+                                clearFocus = { focusManager.clearFocus() })
+                        }
+                        Text(text = "$origin $destination $departure")
+                        Button(
+                            onClick = navigateToPickTicket,
+                            enabled = enabled,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 16.dp)
+                        ) {
+                            Text(text = "جستجو")
+                        }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun HomeTextField(
+    value: String,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        readOnly = true,
+        singleLine = true,
+        label = { Text(text = label) },
+        modifier = modifier.onFocusEvent {
+            if (it.hasFocus) onClick()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomDatePicker(
+    setDeparture: (String) -> Unit,
+    onDismissRequest: () -> Unit,
+    clearFocus: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val datePickerState = rememberDatePickerState(
+        yearRange = (2024..2024)
+    )
+    val confirmEnabled =
+        remember { derivedStateOf { datePickerState.selectedDateMillis != null } }
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        DatePickerDialog(
+            onDismissRequest = onDismissRequest,
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        clearFocus()
+                        onDismissRequest()
+                        var date = ""
+                        if (datePickerState.selectedDateMillis != null)
+                            date =
+                                convertLongToTime(datePickerState.selectedDateMillis!!)
+                        setDeparture(date)
+                    },
+                    enabled = confirmEnabled.value
+                ) {
+                    Text(text = "تأیید")
+                }
+            },
+            modifier = modifier
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }

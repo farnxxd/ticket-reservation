@@ -69,7 +69,12 @@ fun ReservationNavHost(
         composable(route = PickTicketDestination.route) {
             PickTicketScreen(
                 ticketsList = uiState.ticketsList,
-                navigateToTicket = { navController.navigate("${TicketDestination.route}/$it") },
+                navigateToTicket = {
+                    viewModel.clearSeats()
+                    viewModel.setRandomPickedSeats(it)
+                    viewModel.setPickedTicket(it)
+                    navController.navigate("${TicketDestination.route}/${it.id}")
+                },
                 navigateUp = { navController.navigateUp() }
             )
         }
@@ -80,8 +85,14 @@ fun ReservationNavHost(
             })
         ) {
             TicketScreen(
+                ticket = uiState.pickedTicket,
+                pickedSeat = uiState.pickedTicketSeats,
+                seatsOwnByUser = uiState.seatsOwnByUser,
+                addSeat = { viewModel.addSeat(it) },
                 navigateToHome = { navController.popBackStack(route = HomeDestination.route, inclusive = false) },
-                navigateUp = { navController.navigateUp() }
+                navigateUp = {
+                    navController.navigateUp()
+                }
             )
         }
     }

@@ -6,7 +6,7 @@ import java.util.Locale
 
 fun convertLongToTime(time: Long): String {
     val date = Date(time)
-    val format = SimpleDateFormat("MM-dd", Locale.US)
+    val format = SimpleDateFormat("MM/dd", Locale.US)
     return format.format(date)
 }
 

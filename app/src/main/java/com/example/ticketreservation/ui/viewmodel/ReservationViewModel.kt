@@ -43,4 +43,26 @@ class ReservationViewModel: ViewModel() {
 
         _uiState.update { it.copy(ticketsList = ticketsList) }
     }
+
+    fun setPickedTicket(ticket: Ticket) { _uiState.update { it.copy(pickedTicket = ticket) }}
+
+    fun setRandomPickedSeats(ticket: Ticket) {
+        val pickedTicket = _uiState.value.pickedTicket
+
+        if (ticket != pickedTicket) {
+            val pickedSeats = List(24) { Pair(it, Random.nextBoolean()) }
+            _uiState.update { it.copy(pickedTicketSeats = pickedSeats) }
+        }
+    }
+
+    fun addSeat(seat: Int) {
+        val seatsOwnByUser = _uiState.value.seatsOwnByUser.toMutableSet()
+
+        if (seatsOwnByUser.contains(seat)) seatsOwnByUser.remove(seat)
+        else seatsOwnByUser.add(seat)
+
+        _uiState.update { it.copy(seatsOwnByUser = seatsOwnByUser) }
+    }
+
+    fun clearSeats() { _uiState.update { it.copy(seatsOwnByUser = emptySet()) } }
 }

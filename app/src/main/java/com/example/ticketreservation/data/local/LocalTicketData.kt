@@ -17,7 +17,7 @@ object LocalTicketData {
         id = 0,
         origin = "رشت",
         destination = "قزوین",
-        departureDate = "22-09",
+        departureDate = "04/22",
         departureTime = "12:00",
         price = 100000,
         company = "رویال سفر"

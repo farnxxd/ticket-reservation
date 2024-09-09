@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -57,7 +58,7 @@ enum class SortList(
 @Composable
 fun PickTicketScreen(
     ticketsList: List<Ticket>,
-    navigateToTicket: (Int) -> Unit,
+    navigateToTicket: (Ticket) -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -70,7 +71,9 @@ fun PickTicketScreen(
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier.padding(paddingValue)
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(paddingValue)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -83,7 +86,12 @@ fun PickTicketScreen(
                                 sort = sortItem
                                 sortedList = sortItem.onClick(sortedList)
                             },
-                            label = { Text(text = sortItem.label) },
+                            label = {
+                                Text(
+                                    text = sortItem.label,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -95,7 +103,7 @@ fun PickTicketScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
-                                .clickable { navigateToTicket(it.id) }
+                                .clickable { navigateToTicket(it) }
                         )
                     }
                 }

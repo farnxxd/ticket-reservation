@@ -1,6 +1,7 @@
 package com.example.ticketreservation.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import com.example.ticketreservation.ReservationTopAppBar
 import com.example.ticketreservation.data.local.LocalCityData
 import com.example.ticketreservation.ui.navigation.NavigationDestination
@@ -82,7 +84,10 @@ fun PickCity(
 ) {
     var newSelection by remember { mutableStateOf(selectedCity) }
 
-    Column(modifier = modifier) {
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier.fillMaxSize().padding(8.dp)
+    ) {
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(
                 items = LocalCityData.cities,
