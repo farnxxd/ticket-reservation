@@ -1,7 +1,7 @@
 package com.example.ticketreservation.data.ticket
 
 data class Ticket(
-    var id: Int,
+    val id: Int,
     val origin: String,
     val destination: String,
     val departureDate: String,
