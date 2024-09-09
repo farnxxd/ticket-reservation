@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,6 +49,7 @@ import com.example.ticketreservation.data.ticket.Ticket
 import com.example.ticketreservation.data.util.convertIntToPriceString
 import com.example.ticketreservation.ui.navigation.NavigationDestination
 import com.example.ticketreservation.ui.theme.TicketReservationTheme
+import kotlinx.coroutines.launch
 
 object PickTicketDestination : NavigationDestination {
     override val route = "pick_ticket"
@@ -69,6 +72,9 @@ fun PickTicketScreen(
 ) {
     var sort by rememberSaveable { mutableStateOf(SortList.Time) }
     var sortedList by rememberSaveable { mutableStateOf(SortList.Time.onClick(ticketsList)) }
+
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
     
     Scaffold(
         topBar = { ReservationTopAppBar(canNavigateBack = true, navigateUp = navigateUp) }
@@ -90,6 +96,9 @@ fun PickTicketScreen(
                             onClick = {
                                 sort = sortItem
                                 sortedList = sortItem.onClick(sortedList)
+                                coroutineScope.launch {
+                                    listState.scrollToItem(0)
+                                }
                             },
                             label = {
                                 Text(
@@ -101,7 +110,10 @@ fun PickTicketScreen(
                         )
                     }
                 }
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    state = listState
+                ) {
                     items(items = sortedList, key = { it.id }) {
                         Ticket(
                             ticket = it,
