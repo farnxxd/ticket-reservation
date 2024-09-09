@@ -1,6 +1,7 @@
 package com.example.ticketreservation.ui.screens
 
 import android.os.Build
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,16 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -34,12 +36,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.example.ticketreservation.R
 import com.example.ticketreservation.ReservationTopAppBar
 import com.example.ticketreservation.data.util.convertLongToTime
 import com.example.ticketreservation.ui.navigation.NavigationDestination
@@ -49,7 +52,6 @@ object HomeDestination : NavigationDestination {
     override val route = "home"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
@@ -63,9 +65,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     var isDatePickerVisible by remember { mutableStateOf(false) }
-    val enabled by remember {
-        mutableStateOf(origin.isNotBlank() && destination.isNotBlank() && departure.isNotBlank())
-    }
+    val enabled = origin != "" && destination != "" && departure != ""
 
     val focusManager = LocalFocusManager.current
 
@@ -90,11 +90,13 @@ fun HomeScreen(
                         HomeTextField(
                             value = origin,
                             label = "مبدأ",
+                            painterRes = R.drawable.origin_24dp,
                             onClick = navigateToPickOrgCity
                         )
                         HomeTextField(
                             value = destination,
                             label = "مقصد",
+                            painterRes = R.drawable.destination_24dp,
                             onClick = navigateToPickDesCity
                         )
                         HorizontalDivider(
@@ -104,6 +106,7 @@ fun HomeScreen(
                         HomeTextField(
                             value = departure,
                             label = "زمان حرکت",
+                            painterRes = R.drawable.calendar_24dp,
                             onClick = { isDatePickerVisible = true }
                         )
                         if (isDatePickerVisible) {
@@ -112,7 +115,6 @@ fun HomeScreen(
                                 onDismissRequest = { isDatePickerVisible = false },
                                 clearFocus = { focusManager.clearFocus() })
                         }
-                        Text(text = "$origin $destination $departure")
                         Button(
                             onClick = navigateToPickTicket,
                             enabled = enabled,
@@ -133,6 +135,7 @@ fun HomeScreen(
 fun HomeTextField(
     value: String,
     label: String,
+    @DrawableRes painterRes: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -142,7 +145,9 @@ fun HomeTextField(
         readOnly = true,
         singleLine = true,
         label = { Text(text = label) },
-        modifier = modifier.onFocusEvent {
+        leadingIcon = { Icon(painter = painterResource(id = painterRes), contentDescription = "")},
+        trailingIcon = { if (value != "") Icon(imageVector = Icons.Default.Done, contentDescription = "") },
+        modifier = modifier.onFocusChanged {
             if (it.hasFocus) onClick()
         }
     )
@@ -163,7 +168,10 @@ fun CustomDatePicker(
         remember { derivedStateOf { datePickerState.selectedDateMillis != null } }
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         DatePickerDialog(
-            onDismissRequest = onDismissRequest,
+            onDismissRequest = {
+                clearFocus()
+                onDismissRequest()
+            },
             confirmButton = {
                 TextButton(
                     onClick = {

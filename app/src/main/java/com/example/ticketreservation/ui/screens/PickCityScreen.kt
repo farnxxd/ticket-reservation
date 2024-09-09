@@ -48,8 +48,8 @@ fun PickCityScreen(
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var enabled by remember { mutableStateOf(false) }
     var newSelection by remember { mutableStateOf(selectedCity) }
+    var enabled = newSelection != "" && newSelection != otherCity
 
     Scaffold(
         topBar = { ReservationTopAppBar(canNavigateBack = true, navigateUp = navigateUp) },
@@ -83,14 +83,18 @@ fun PickCity(
     enabled: Boolean = false
 ) {
     var newSelection by remember { mutableStateOf(selectedCity) }
+    var searchQuery by remember { mutableStateOf("") }
+    var cities by remember { mutableStateOf(LocalCityData.cities) }
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
-        modifier = modifier.fillMaxSize().padding(8.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .padding(8.dp)
     ) {
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(
-                items = LocalCityData.cities,
+                items = cities,
                 key = { it.first }
             ) {
                 ListItem(
@@ -106,7 +110,14 @@ fun PickCity(
             }
         }
         TextField(
-            value = "", onValueChange = {}, modifier = Modifier.fillMaxWidth()
+            value = searchQuery,
+            onValueChange = {
+                searchQuery = it
+                cities = LocalCityData.cities.filter {
+                    it.second.startsWith(searchQuery, ignoreCase = true)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
         )
         Button(
             onClick = onConfirmClick,
