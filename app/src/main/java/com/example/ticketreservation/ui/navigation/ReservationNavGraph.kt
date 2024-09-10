@@ -42,13 +42,15 @@ fun ReservationNavHost(
                 destination = uiState.destination,
                 departure = uiState.departure,
                 ticketList = viewModel.ticketsState.collectAsState().value.ownedTicket,
+                swapSides = { viewModel.swapSide() },
                 setDeparture = { viewModel.setDeparture(it) },
                 navigateToPickOrgCity = { navController.navigate(PickOrgCityDestination.route) },
                 navigateToPickDesCity = { navController.navigate(PickDesCityDestination.route) },
                 navigateToPickTicket = {
                     viewModel.createRandomTicketList()
                     navController.navigate(PickTicketDestination.route)
-                }
+                },
+                onRefundClick = { viewModel.refundTicket(it) }
             )
         }
         composable(route = PickOrgCityDestination.route) {
@@ -88,11 +90,12 @@ fun ReservationNavHost(
             TicketScreen(
                 ticket = uiState.pickedTicket,
                 pickedSeat = uiState.pickedTicketSeats,
-                seatsOwnByUser = uiState.seatsOwnByUser,
+                seatsOwnByUser = uiState.seatsOwnedByUser,
                 addSeat = { viewModel.addSeat(it) },
                 onSubmit = {
-
+                    viewModel.buyTicket()
                     navController.popBackStack(route = HomeDestination.route, inclusive = false)
+                    viewModel.clearReservationState()
                 },
                 navigateUp = {
                     navController.navigateUp()

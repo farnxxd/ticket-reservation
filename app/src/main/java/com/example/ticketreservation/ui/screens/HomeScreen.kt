@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,11 +16,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,14 +46,13 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.example.ticketreservation.R
 import com.example.ticketreservation.ReservationNavigationBar
 import com.example.ticketreservation.ReservationTopAppBar
+import com.example.ticketreservation.data.local.LocalTicketData
 import com.example.ticketreservation.data.ticket.Ticket
 import com.example.ticketreservation.data.util.convertLongToTime
 import com.example.ticketreservation.ui.navigation.NavigationDestination
@@ -69,10 +70,12 @@ fun HomeScreen(
     destination: String,
     departure: String,
     ticketList: List<Ticket>,
+    swapSides: () -> Unit,
     setDeparture: (String) -> Unit,
     navigateToPickOrgCity: () -> Unit,
     navigateToPickDesCity: () -> Unit,
     navigateToPickTicket: () -> Unit,
+    onRefundClick: (Ticket) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var screen by rememberSaveable { mutableStateOf(NavigationItem.Home) }
@@ -92,6 +95,7 @@ fun HomeScreen(
                     origin = origin,
                     destination = destination,
                     departure = departure,
+                    swapSides = swapSides,
                     setDeparture = setDeparture,
                     navigateToPickOrgCity = navigateToPickOrgCity,
                     navigateToPickDesCity = navigateToPickDesCity,
@@ -100,7 +104,11 @@ fun HomeScreen(
                 )
 
             NavigationItem.Ticket ->
-                UserTicketScreen(ticketList = ticketList)
+                UserTicketScreen(
+                    ticketList = ticketList,
+                    onRefundClick = { onRefundClick(it) },
+                    modifier = Modifier.padding(paddingValues)
+                )
         }
 
     }
@@ -111,6 +119,7 @@ fun TicketSearchScreen(
     origin: String,
     destination: String,
     departure: String,
+    swapSides: () -> Unit,
     setDeparture: (String) -> Unit,
     navigateToPickOrgCity: () -> Unit,
     navigateToPickDesCity: () -> Unit,
@@ -118,7 +127,7 @@ fun TicketSearchScreen(
     modifier: Modifier = Modifier
 ) {
     var isDatePickerVisible by remember { mutableStateOf(false) }
-    val enabled = origin != "" && destination != "" && departure != ""
+    val enabled = origin.isNotEmpty() && destination.isNotEmpty() && departure.isNotEmpty()
     val focusManager = LocalFocusManager.current
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -132,20 +141,38 @@ fun TicketSearchScreen(
                         .width(IntrinsicSize.Min)
                         .padding(16.dp)
                 ) {
-                    HomeTextField(
-                        value = origin,
-                        label = "مبدأ",
-                        painterRes = R.drawable.origin_24dp,
-                        onClick = navigateToPickOrgCity
-                    )
-                    HomeTextField(
-                        value = destination,
-                        label = "مقصد",
-                        painterRes = R.drawable.destination_24dp,
-                        onClick = navigateToPickDesCity
-                    )
+                    Box {
+                        Column {
+                            HomeTextField(
+                                value = origin,
+                                label = "مبدأ",
+                                painterRes = R.drawable.origin_24dp,
+                                onClick = navigateToPickOrgCity
+                            )
+                            HomeTextField(
+                                value = destination,
+                                label = "مقصد",
+                                painterRes = R.drawable.destination_24dp,
+                                onClick = navigateToPickDesCity
+                            )
+                        }
+                        if (origin.isNotEmpty() || destination.isNotEmpty()) {
+                            FilledIconButton(
+                                onClick = swapSides,
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(end = 32.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.swap_24dp),
+                                    contentDescription = ""
+                                )
+                            }
+                        }
+                    }
                     HorizontalDivider(
                         thickness = 2.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                     HomeTextField(
@@ -178,12 +205,64 @@ fun TicketSearchScreen(
 @Composable
 fun UserTicketScreen(
     ticketList: List<Ticket>,
+    onRefundClick: (Ticket) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(modifier = modifier) {
-        items(items = ticketList, key = { it.id }) {
-            InfoCard(ticket = it)
+    val emptyTicket = LocalTicketData.emptyTicket
+    var isDialogVisible by remember { mutableStateOf(false) }
+    var selectedTicket by remember { mutableStateOf(emptyTicket) }
+
+    val openDialog = { isDialogVisible = true }
+    val closeDialog = {
+        isDialogVisible = false
+        selectedTicket = emptyTicket
+    }
+
+    val list = ticketList.sortedBy {
+        it.departureDate
+        it.departureTime
+    }
+
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+    ) {
+        items(items = list, key = { it.id }) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                InfoCard(
+                    ticket = it,
+                    onRefundClick = {
+                        selectedTicket = it
+                        openDialog()
+                    },
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+            }
         }
+    }
+    if (isDialogVisible) {
+        AlertDialog(
+            title = {
+                Text(text = "هشدار")
+            },
+            text = {
+                Text(text = "آیا مایل به استرداد بلیط خریداری شده هستید؟")
+            },
+            onDismissRequest = closeDialog,
+            confirmButton = {
+                TextButton(onClick = {
+                    onRefundClick(selectedTicket)
+                    closeDialog()
+                }) {
+                    Text(text = "تأیید")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = closeDialog) {
+                    Text(text = "لغو")
+                }
+            }
+        )
     }
 }
 
@@ -267,10 +346,12 @@ fun HomeScreenPreview() {
                 destination = "",
                 departure = "",
                 ticketList = emptyList(),
+                swapSides = {},
                 setDeparture = {},
                 navigateToPickOrgCity = {},
                 navigateToPickDesCity = {},
                 navigateToPickTicket = {},
+                onRefundClick = {},
                 modifier = Modifier.fillMaxSize()
             )
         }

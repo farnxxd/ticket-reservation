@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class ReservationViewModel(
@@ -42,6 +43,11 @@ class ReservationViewModel(
 
     fun setDestination(city: String) {
         _uiState.update { it.copy(destination = city) }
+    }
+
+    fun swapSide() {
+        val swap = Pair(_uiState.value.origin, _uiState.value.destination)
+        _uiState.update { it.copy(origin = swap.second, destination = swap.first) }
     }
 
     fun setDeparture(date: String) {
@@ -87,16 +93,39 @@ class ReservationViewModel(
     }
 
     fun addSeat(seat: Int) {
-        val seatsOwnByUser = _uiState.value.seatsOwnByUser.toMutableSet()
+        val seatsOwnByUser = _uiState.value.seatsOwnedByUser.toMutableSet()
 
         if (seatsOwnByUser.contains(seat)) seatsOwnByUser.remove(seat)
         else seatsOwnByUser.add(seat)
 
-        _uiState.update { it.copy(seatsOwnByUser = seatsOwnByUser) }
+        _uiState.update { it.copy(seatsOwnedByUser = seatsOwnByUser) }
     }
 
     fun clearSeats() {
-        _uiState.update { it.copy(seatsOwnByUser = emptySet()) }
+        _uiState.update { it.copy(seatsOwnedByUser = emptySet()) }
+    }
+
+    fun clearReservationState() {
+        _uiState.value = ReservationUiState()
+    }
+
+    fun buyTicket() {
+        val seatsOwnedByUser = _uiState.value.seatsOwnedByUser
+        var seatNumber = ""
+        seatsOwnedByUser.forEach {
+            seatNumber += "$it,"
+        }
+        val ticket = _uiState.value.pickedTicket.copy(seatNumber = seatNumber)
+
+        viewModelScope.launch {
+            reservationRepository.buyTicket(ticket)
+        }
+    }
+
+    fun refundTicket(ticket: Ticket) {
+        viewModelScope.launch {
+            reservationRepository.refundTicket(ticket)
+        }
     }
 
     companion object {

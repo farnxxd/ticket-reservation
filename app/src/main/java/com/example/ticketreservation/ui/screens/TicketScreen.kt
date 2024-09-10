@@ -89,7 +89,8 @@ fun TicketScreen(
 @Composable
 fun InfoCard(
     ticket: Ticket,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRefundClick: () -> Unit = {}
 ) {
     Card(modifier = modifier) {
         Column(
@@ -127,7 +128,7 @@ fun InfoCard(
                 Text(
                     text = buildAnnotatedString {
                         append("شماره صندلی ")
-                        append(ticket.seatNumber)
+                        append(ticket.seatNumber.dropLast(1))
                     },
                     style = MaterialTheme.typography.labelMedium
                 )
@@ -138,7 +139,7 @@ fun InfoCard(
                     textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = onRefundClick, modifier = Modifier.fillMaxWidth()) {
                     Text(text = "استرداد")
                 }
             }
