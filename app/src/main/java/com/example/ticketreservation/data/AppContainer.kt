@@ -9,7 +9,7 @@ interface AppContainer {
 class AppDataContainer(private val context: Context) : AppContainer {
     override val reservationRepository: ReservationRepository by lazy {
         ReservationRepository(
-            userTicketDao = ReservationDatabase.getDatabase(context).userTicketDao()
+            ticketDao = ReservationDatabase.getDatabase(context).ticketDao()
         )
     }
 }

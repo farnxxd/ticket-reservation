@@ -41,6 +41,7 @@ fun ReservationNavHost(
                 origin = uiState.origin,
                 destination = uiState.destination,
                 departure = uiState.departure,
+                ticketList = viewModel.ticketsState.collectAsState().value.ownedTicket,
                 setDeparture = { viewModel.setDeparture(it) },
                 navigateToPickOrgCity = { navController.navigate(PickOrgCityDestination.route) },
                 navigateToPickDesCity = { navController.navigate(PickDesCityDestination.route) },
@@ -89,7 +90,10 @@ fun ReservationNavHost(
                 pickedSeat = uiState.pickedTicketSeats,
                 seatsOwnByUser = uiState.seatsOwnByUser,
                 addSeat = { viewModel.addSeat(it) },
-                navigateToHome = { navController.popBackStack(route = HomeDestination.route, inclusive = false) },
+                onSubmit = {
+
+                    navController.popBackStack(route = HomeDestination.route, inclusive = false)
+                },
                 navigateUp = {
                     navController.navigateUp()
                 }

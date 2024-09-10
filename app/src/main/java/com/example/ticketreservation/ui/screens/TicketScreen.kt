@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,7 @@ fun TicketScreen(
     pickedSeat: List<Pair<Int, Boolean>>,
     seatsOwnByUser: Set<Int>,
     addSeat: (Int) -> Unit,
-    navigateToHome: () -> Unit,
+    onSubmit: () -> Unit,
     navigateUp: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -77,7 +78,7 @@ fun TicketScreen(
                 TotalBill(price = ticket.price, seats = seatsOwnByUser.size)
             }
             Button(
-                onClick = navigateToHome,
+                onClick = onSubmit,
                 enabled = seatsOwnByUser.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
             ) { Text(text = "خرید بلیط") }
@@ -114,7 +115,6 @@ fun InfoCard(
                     Text(text = ticket.departureTime, style = MaterialTheme.typography.titleMedium)
                 }
             }
-
             Text(
                 text = buildAnnotatedString {
                     append("شرکت مسافربری ")
@@ -122,6 +122,26 @@ fun InfoCard(
                 },
                 style = MaterialTheme.typography.labelLarge
             )
+            if (ticket.seatNumber.isNotEmpty()) {
+                val seatList = ticket.seatNumber.split(",")
+                Text(
+                    text = buildAnnotatedString {
+                        append("شماره صندلی ")
+                        append(ticket.seatNumber)
+                    },
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = convertIntToPriceString(ticket.price * seatList.size),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                    Text(text = "استرداد")
+                }
+            }
         }
     }
 }
@@ -222,7 +242,7 @@ fun TicketScreenPreview() {
             pickedSeat = list,
             seatsOwnByUser = setOf(list.filter { it.second }.map { it.first }.random()),
             addSeat = {},
-            navigateToHome = {},
+            onSubmit = {},
             navigateUp = {},
             modifier = Modifier.fillMaxSize()
         )

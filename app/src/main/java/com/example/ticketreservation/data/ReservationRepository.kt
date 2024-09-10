@@ -1,13 +1,13 @@
 package com.example.ticketreservation.data
 
-import com.example.ticketreservation.data.userticket.UserTicket
-import com.example.ticketreservation.data.userticket.UserTicketDao
+import com.example.ticketreservation.data.ticket.Ticket
+import com.example.ticketreservation.data.ticket.TicketDao
 import kotlinx.coroutines.flow.Flow
 
-class ReservationRepository(private val userTicketDao: UserTicketDao) {
-    fun getAllTicketsStream(): Flow<List<UserTicket>> = userTicketDao.getAllTicketsStream()
+class ReservationRepository(private val ticketDao: TicketDao) {
+    fun getAllTicketsStream(): Flow<List<Ticket>> = ticketDao.getAllTicketsStream()
 
-    suspend fun buyTicket(ticket: UserTicket) = userTicketDao.addTicket(ticket)
+    suspend fun buyTicket(ticket: Ticket) = ticketDao.addTicket(ticket)
 
-    suspend fun refundTicket(ticket: UserTicket) = userTicketDao.deleteTicket(ticket)
+    suspend fun refundTicket(ticket: Ticket) = ticketDao.deleteTicket(ticket)
 }

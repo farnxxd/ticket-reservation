@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.ticketreservation.data.userticket.UserTicket
-import com.example.ticketreservation.data.userticket.UserTicketDao
+import com.example.ticketreservation.data.ticket.Ticket
+import com.example.ticketreservation.data.ticket.TicketDao
 import kotlin.concurrent.Volatile
 
-@Database(entities = [UserTicket::class], version = 1, exportSchema = false)
+@Database(entities = [Ticket::class], version = 1, exportSchema = false)
 abstract class ReservationDatabase : RoomDatabase() {
-    abstract fun userTicketDao(): UserTicketDao
+    abstract fun ticketDao(): TicketDao
 
     companion object {
         @Volatile
