@@ -1,17 +1,17 @@
 package com.example.ticketreservation
 
-import android.content.res.Resources.Theme
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -40,12 +40,13 @@ fun ReservationApp(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservationTopAppBar(
+    @StringRes titleRes: Int,
     canNavigateBack: Boolean,
     modifier: Modifier = Modifier,
     navigateUp: () -> Unit = {}
 ) {
-    CenterAlignedTopAppBar(
-        title = { Text(text = stringResource(id = R.string.app_name)) },
+    TopAppBar(
+        title = { Text(text = stringResource(id = titleRes)) },
         navigationIcon = {
             if (canNavigateBack) {
                 IconButton(onClick = navigateUp) {
@@ -100,7 +101,7 @@ fun ReservationPreview() {
 @Composable
 fun ReservationTopAppBarPreview() {
     TicketReservationTheme {
-        ReservationTopAppBar(canNavigateBack = true)
+        ReservationTopAppBar(titleRes = R.string.app_name_fa, canNavigateBack = true)
     }
 }
 

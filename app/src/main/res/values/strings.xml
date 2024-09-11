@@ -1,3 +1,26 @@
 <resources>
     <string name="app_name">Ticket Reservation</string>
+    <string name="app_name_fa">رزرو بلیط</string>
+    <string name="pick_org_city">مبدا را انتخاب کنید</string>
+    <string name="pick_des_city">مقصد را انتخاب کنید</string>
+    <string name="buy_ticket">خرید بلیط</string>
+    <string name="origin">مبدأ</string>
+    <string name="destination">مقصد</string>
+    <string name="departure_date">تاریخ حرکت</string>
+    <string name="departure_time">زمان حرکت</string>
+    <string name="alert">هشدار</string>
+    <string name="refund_message">آیا مایل به استرداد بلیط خریداری شده هستید؟</string>
+    <string name="confirm">تأیید</string>
+    <string name="cancel">لغو</string>
+    <string name="search">جستجو</string>
+    <string name="price">قیمت</string>
+    <string name="to">" به "</string>
+    <string name="enter_city">نام شهر مرکز استان را وارد کنید …</string>
+    <string name="company">"شرکت مسافربری "</string>
+    <string name="seat_number">"شماره صندلی "</string>
+    <string name="refund">استرداد</string>
+    <string name="choose_seat">صندلی خود را انتخاب کنید</string>
+    <string name="total">هزینه نهایی</string>
+    <string name="seats">%1$s صندلی</string>
+    <string name="choose_departure">تاریخ حرکت را انتخاب کنید</string>
 </resources>

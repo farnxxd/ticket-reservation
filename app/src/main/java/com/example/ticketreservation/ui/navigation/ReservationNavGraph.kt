@@ -55,6 +55,7 @@ fun ReservationNavHost(
         }
         composable(route = PickOrgCityDestination.route) {
             PickCityScreen(
+                titleRes = PickOrgCityDestination.titleRes,
                 selectedCity = uiState.origin,
                 otherCity = uiState.destination,
                 setCity = { viewModel.setOrigin(it) },
@@ -63,6 +64,7 @@ fun ReservationNavHost(
         }
         composable(route = PickDesCityDestination.route) {
             PickCityScreen(
+                titleRes = PickDesCityDestination.titleRes,
                 selectedCity = uiState.destination,
                 otherCity = uiState.origin,
                 setCity = { viewModel.setDestination(it) },

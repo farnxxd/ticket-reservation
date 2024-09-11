@@ -19,9 +19,10 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -46,6 +48,8 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -54,6 +58,7 @@ import com.example.ticketreservation.ReservationNavigationBar
 import com.example.ticketreservation.ReservationTopAppBar
 import com.example.ticketreservation.data.local.LocalTicketData
 import com.example.ticketreservation.data.ticket.Ticket
+import com.example.ticketreservation.data.util.FutureSelectableDates
 import com.example.ticketreservation.data.util.convertLongToTime
 import com.example.ticketreservation.ui.navigation.NavigationDestination
 import com.example.ticketreservation.ui.navigation.NavigationItem
@@ -61,8 +66,10 @@ import com.example.ticketreservation.ui.theme.TicketReservationTheme
 
 object HomeDestination : NavigationDestination {
     override val route = "home"
+    override val titleRes = R.string.app_name_fa
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(
@@ -80,7 +87,11 @@ fun HomeScreen(
 ) {
     var screen by rememberSaveable { mutableStateOf(NavigationItem.Home) }
     Scaffold(
-        topBar = { ReservationTopAppBar(canNavigateBack = false) },
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(text = stringResource(id = R.string.app_name_fa)) },
+            )
+        },
         bottomBar = {
             ReservationNavigationBar(
                 screen = screen,
@@ -145,13 +156,13 @@ fun TicketSearchScreen(
                         Column {
                             HomeTextField(
                                 value = origin,
-                                label = "مبدأ",
+                                label = stringResource(R.string.origin),
                                 painterRes = R.drawable.origin_24dp,
                                 onClick = navigateToPickOrgCity
                             )
                             HomeTextField(
                                 value = destination,
-                                label = "مقصد",
+                                label = stringResource(R.string.destination),
                                 painterRes = R.drawable.destination_24dp,
                                 onClick = navigateToPickDesCity
                             )
@@ -177,7 +188,7 @@ fun TicketSearchScreen(
                     )
                     HomeTextField(
                         value = departure,
-                        label = "زمان حرکت",
+                        label = stringResource(R.string.departure_date),
                         painterRes = R.drawable.calendar_24dp,
                         onClick = { isDatePickerVisible = true }
                     )
@@ -194,7 +205,7 @@ fun TicketSearchScreen(
                             .fillMaxWidth()
                             .padding(top = 16.dp)
                     ) {
-                        Text(text = "جستجو")
+                        Text(text = stringResource(R.string.search))
                     }
                 }
             }
@@ -243,10 +254,14 @@ fun UserTicketScreen(
     if (isDialogVisible) {
         AlertDialog(
             title = {
-                Text(text = "هشدار")
+                Text(
+                    text = stringResource(R.string.alert),
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
             },
             text = {
-                Text(text = "آیا مایل به استرداد بلیط خریداری شده هستید؟")
+                Text(text = stringResource(R.string.refund_message))
             },
             onDismissRequest = closeDialog,
             confirmButton = {
@@ -254,12 +269,12 @@ fun UserTicketScreen(
                     onRefundClick(selectedTicket)
                     closeDialog()
                 }) {
-                    Text(text = "تأیید")
+                    Text(text = stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = closeDialog) {
-                    Text(text = "لغو")
+                    Text(text = stringResource(R.string.cancel))
                 }
             }
         )
@@ -302,7 +317,9 @@ fun CustomDatePicker(
     modifier: Modifier = Modifier
 ) {
     val datePickerState = rememberDatePickerState(
-        yearRange = (2024..2024)
+        initialSelectedDateMillis = System.currentTimeMillis(),
+        yearRange = (2024..2024),
+        selectableDates = FutureSelectableDates()
     )
     val confirmEnabled =
         remember { derivedStateOf { datePickerState.selectedDateMillis != null } }
@@ -325,12 +342,23 @@ fun CustomDatePicker(
                     },
                     enabled = confirmEnabled.value
                 ) {
-                    Text(text = "تأیید")
+                    Text(text = stringResource(id = R.string.confirm))
                 }
             },
             modifier = modifier
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(
+                state = datePickerState,
+                title = {
+                    Text(
+                        text = stringResource(R.string.choose_departure),
+                        textAlign = TextAlign.End,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
+                }
+            )
         }
     }
 }

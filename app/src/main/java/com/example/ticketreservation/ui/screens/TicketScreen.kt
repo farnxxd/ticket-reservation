@@ -25,12 +25,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.example.ticketreservation.R
 import com.example.ticketreservation.ReservationTopAppBar
 import com.example.ticketreservation.data.local.LocalTicketData
 import com.example.ticketreservation.data.ticket.Ticket
@@ -41,6 +43,7 @@ import kotlin.random.Random
 
 object TicketDestination : NavigationDestination {
     override val route = "ticket"
+    override val titleRes = R.string.buy_ticket
     const val ticketIdArg = "ticketId"
     val routeWithArgs = "$route/{$ticketIdArg}"
 }
@@ -56,7 +59,13 @@ fun TicketScreen(
     modifier: Modifier = Modifier
 ) {
     Scaffold(
-        topBar = { ReservationTopAppBar(canNavigateBack = true, navigateUp = navigateUp)},
+        topBar = {
+            ReservationTopAppBar(
+                titleRes = TicketDestination.titleRes,
+                canNavigateBack = true,
+                navigateUp = navigateUp
+            )
+        },
         modifier = modifier
     ) { paddingValue ->
         Column(
@@ -81,7 +90,7 @@ fun TicketScreen(
                 onClick = onSubmit,
                 enabled = seatsOwnByUser.isNotEmpty(),
                 modifier = Modifier.fillMaxWidth()
-            ) { Text(text = "خرید بلیط") }
+            ) { Text(text = stringResource(id = R.string.buy_ticket)) }
         }
     }
 }
@@ -100,7 +109,7 @@ fun InfoCard(
             Text(
                 text = buildAnnotatedString {
                     append(ticket.origin)
-                    append(" به ")
+                    append(stringResource(id = R.string.to))
                     append(ticket.destination)
                 },
                 style = MaterialTheme.typography.titleLarge,
@@ -108,17 +117,17 @@ fun InfoCard(
             )
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "تاریخ حرکت:", style = MaterialTheme.typography.labelMedium)
+                    Text(text = stringResource(R.string.departure_date), style = MaterialTheme.typography.labelMedium)
                     Text(text = ticket.departureDate, style = MaterialTheme.typography.titleMedium)
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "زمان حرکت:", style = MaterialTheme.typography.labelMedium)
+                    Text(text = stringResource(id = R.string.departure_time), style = MaterialTheme.typography.labelMedium)
                     Text(text = ticket.departureTime, style = MaterialTheme.typography.titleMedium)
                 }
             }
             Text(
                 text = buildAnnotatedString {
-                    append("شرکت مسافربری ")
+                    append(stringResource(R.string.company))
                     append(ticket.company)
                 },
                 style = MaterialTheme.typography.labelLarge
@@ -127,7 +136,7 @@ fun InfoCard(
                 val seatList = ticket.seatNumber.split(",")
                 Text(
                     text = buildAnnotatedString {
-                        append("شماره صندلی ")
+                        append(stringResource(R.string.seat_number))
                         append(ticket.seatNumber.dropLast(1))
                     },
                     style = MaterialTheme.typography.labelMedium
@@ -140,7 +149,7 @@ fun InfoCard(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Button(onClick = onRefundClick, modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "استرداد")
+                    Text(text = stringResource(R.string.refund))
                 }
             }
         }
@@ -158,7 +167,7 @@ fun PickSeat(
         Column(modifier = Modifier.padding(12.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
                 Text(
-                    text = "صندلی خود را انتخاب کنید",
+                    text = stringResource(R.string.choose_seat),
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -218,10 +227,10 @@ fun TotalBill(
 ) {
     ListItem(
         headlineContent = {
-            Text(text = "هزینه نهایی")
+            Text(text = stringResource(R.string.total))
         },
         supportingContent = {
-            Text(text = if (seats != 0)  "$seats صندلی" else " ")
+            Text(text = if (seats != 0) stringResource(R.string.seats, seats) else " ")
         },
         trailingContent = {
             Text(
