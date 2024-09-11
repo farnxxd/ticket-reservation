@@ -41,17 +41,21 @@ fun ReservationNavHost(
                 origin = uiState.origin,
                 destination = uiState.destination,
                 departure = uiState.departure,
+                ticketList = viewModel.ticketsState.collectAsState().value.ownedTicket,
+                swapSides = { viewModel.swapSide() },
                 setDeparture = { viewModel.setDeparture(it) },
                 navigateToPickOrgCity = { navController.navigate(PickOrgCityDestination.route) },
                 navigateToPickDesCity = { navController.navigate(PickDesCityDestination.route) },
                 navigateToPickTicket = {
                     viewModel.createRandomTicketList()
                     navController.navigate(PickTicketDestination.route)
-                }
+                },
+                onRefundClick = { viewModel.refundTicket(it) }
             )
         }
         composable(route = PickOrgCityDestination.route) {
             PickCityScreen(
+                titleRes = PickOrgCityDestination.titleRes,
                 selectedCity = uiState.origin,
                 otherCity = uiState.destination,
                 setCity = { viewModel.setOrigin(it) },
@@ -60,6 +64,7 @@ fun ReservationNavHost(
         }
         composable(route = PickDesCityDestination.route) {
             PickCityScreen(
+                titleRes = PickDesCityDestination.titleRes,
                 selectedCity = uiState.destination,
                 otherCity = uiState.origin,
                 setCity = { viewModel.setDestination(it) },
@@ -87,9 +92,13 @@ fun ReservationNavHost(
             TicketScreen(
                 ticket = uiState.pickedTicket,
                 pickedSeat = uiState.pickedTicketSeats,
-                seatsOwnByUser = uiState.seatsOwnByUser,
+                seatsOwnByUser = uiState.seatsOwnedByUser,
                 addSeat = { viewModel.addSeat(it) },
-                navigateToHome = { navController.popBackStack(route = HomeDestination.route, inclusive = false) },
+                onSubmit = {
+                    viewModel.buyTicket()
+                    navController.popBackStack(route = HomeDestination.route, inclusive = false)
+                    viewModel.clearReservationState()
+                },
                 navigateUp = {
                     navController.navigateUp()
                 }

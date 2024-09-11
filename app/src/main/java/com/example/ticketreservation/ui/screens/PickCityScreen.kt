@@ -1,5 +1,6 @@
 package com.example.ticketreservation.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,14 +27,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.example.ticketreservation.R
 import com.example.ticketreservation.ReservationTopAppBar
 import com.example.ticketreservation.data.local.LocalCityData
 import com.example.ticketreservation.ui.navigation.NavigationDestination
@@ -42,14 +46,17 @@ import kotlinx.coroutines.launch
 
 object PickOrgCityDestination : NavigationDestination {
     override val route = "pick_org_city"
+    override val titleRes = R.string.pick_org_city
 }
 
 object PickDesCityDestination : NavigationDestination {
     override val route = "pick_des_city"
+    override val titleRes = R.string.pick_des_city
 }
 
 @Composable
 fun PickCityScreen(
+    @StringRes titleRes: Int,
     selectedCity: String,
     otherCity: String,
     setCity: (String) -> Unit,
@@ -57,10 +64,10 @@ fun PickCityScreen(
     modifier: Modifier = Modifier
 ) {
     var newSelection by remember { mutableStateOf(selectedCity) }
-    var enabled = newSelection != "" && newSelection != otherCity
+    var enabled = newSelection.isNotEmpty() && newSelection != otherCity
 
     Scaffold(
-        topBar = { ReservationTopAppBar(canNavigateBack = true, navigateUp = navigateUp) },
+        topBar = { ReservationTopAppBar(titleRes = titleRes, canNavigateBack = true, navigateUp = navigateUp) },
         modifier = modifier
     ) { paddingValue ->
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
@@ -68,7 +75,7 @@ fun PickCityScreen(
                 selectedCity = selectedCity,
                 onCitySelected = {
                     newSelection = it
-                    enabled = (newSelection != "") && (newSelection != otherCity)
+                    enabled = (newSelection.isNotEmpty()) && (newSelection != otherCity)
                 },
                 onConfirmClick = {
                     setCity(newSelection)
@@ -90,9 +97,9 @@ fun PickCity(
     onConfirmClick: () -> Unit = {},
     enabled: Boolean = false
 ) {
-    var newSelection by remember { mutableStateOf(selectedCity) }
-    var searchQuery by remember { mutableStateOf("") }
-    var cities by remember { mutableStateOf(LocalCityData.cities) }
+    var newSelection by rememberSaveable { mutableStateOf(selectedCity) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var cities by rememberSaveable { mutableStateOf(LocalCityData.cities) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -140,7 +147,7 @@ fun PickCity(
                 }
             },
             placeholder = {
-                Text(text = "نام شهر مرکز استان را وارد کنید...")
+                Text(text = stringResource(R.string.enter_city))
             },
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Search
@@ -156,7 +163,7 @@ fun PickCity(
             shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "تایید")
+            Text(text = stringResource(id = R.string.confirm))
         }
     }
 }
@@ -166,6 +173,7 @@ fun PickCity(
 fun PickCityScreenPreview() {
     TicketReservationTheme {
         PickCityScreen(
+            titleRes = PickOrgCityDestination.titleRes,
             selectedCity = "",
             otherCity = "",
             setCity = {},

@@ -1,15 +1,12 @@
 package com.example.ticketreservation.ui.screens
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +15,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,14 +50,15 @@ import kotlinx.coroutines.launch
 
 object PickTicketDestination : NavigationDestination {
     override val route = "pick_ticket"
+    override val titleRes = R.string.app_name_fa
 }
 
 enum class SortList(
     val onClick: (List<Ticket>) -> List<Ticket>,
-    val label: String
+    @StringRes val label: Int
 ) {
-    Time(onClick = { it.sortedBy { it.departureTime } }, label = "زمان حرکت"),
-    Price(onClick = { it.sortedBy { it.price } }, label = "قیمت")
+    Time(onClick = { list -> list.sortedBy { it.departureTime } }, label = R.string.departure_date),
+    Price(onClick = { list -> list.sortedBy { it.price } }, label = R.string.price)
 }
 
 @Composable
@@ -75,9 +73,15 @@ fun PickTicketScreen(
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    
+
     Scaffold(
-        topBar = { ReservationTopAppBar(canNavigateBack = true, navigateUp = navigateUp) }
+        topBar = {
+            ReservationTopAppBar(
+                titleRes = PickTicketDestination.titleRes,
+                canNavigateBack = true,
+                navigateUp = navigateUp
+            )
+        }
     ) { paddingValue ->
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
             Column(
@@ -102,10 +106,11 @@ fun PickTicketScreen(
                             },
                             label = {
                                 Text(
-                                    text = sortItem.label,
+                                    text = stringResource(id = sortItem.label),
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.fillMaxWidth()
-                                ) },
+                                )
+                            },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -148,7 +153,7 @@ fun Ticket(
                 Text(
                     text = buildAnnotatedString {
                         append(ticket.origin)
-                        append(" به ")
+                        append(stringResource(R.string.to))
                         append(ticket.destination)
                     },
                     style = MaterialTheme.typography.titleMedium,
@@ -158,7 +163,8 @@ fun Ticket(
             headlineContent = {
                 Text(
                     text = buildAnnotatedString {
-                        append("زمان حرکت: ")
+                        append(stringResource(id = R.string.departure_date))
+                        append(": ")
                         append(ticket.departureTime)
                     },
                     style = MaterialTheme.typography.labelLarge,
